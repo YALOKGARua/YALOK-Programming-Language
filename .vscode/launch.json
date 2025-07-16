@@ -1,0 +1,52 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug YALOK",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/yalok",
+            "args": [
+                "${workspaceFolder}/examples/hello.yal"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "build"
+        },
+        {
+            "name": "Debug YALOK Interactive",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/yalok",
+            "args": [
+                "-i"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "build"
+        },
+        {
+            "name": "Debug YALOK with Memory Stats",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/yalok",
+            "args": [
+                "-d",
+                "-m",
+                "${workspaceFolder}/examples/algorithms.yal"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "build"
+        }
+    ]
+}

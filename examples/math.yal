@@ -1,0 +1,34 @@
+var a = 10;
+var b = 3;
+
+print("Addition: ", a + b);
+print("Subtraction: ", a - b);
+print("Multiplication: ", a * b);
+print("Division: ", a / b);
+print("Modulo: ", a % b);
+
+var pi = 3.14159;
+var radius = 5;
+var area = pi * radius * radius;
+print("Circle area: ", area);
+
+var negative = -42;
+print("Negative: ", negative);
+
+var comparison = a > b;
+print("10 > 3: ", comparison);
+print("10 == 3: ", a == b);
+print("10 != 3: ", a != b);
+
+var logic_test = true;
+var logic_result = logic_test and (a > b);
+print("Logic result: ", logic_result);
+
+var factorial = 1;
+var n = 5;
+var i = 1;
+while (i <= n) {
+    factorial = factorial * i;
+    i = i + 1;
+}
+print("Factorial of 5: ", factorial); 

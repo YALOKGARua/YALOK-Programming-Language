@@ -1,0 +1,26 @@
+{
+    "files.associations": {
+        "*.yal": "javascript",
+        "*.yalok": "javascript"
+    },
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": true,
+    "editor.rulers": [80, 120],
+    "C_Cpp.default.cppStandard": "c++20",
+    "C_Cpp.default.intelliSenseMode": "gcc-x64",
+    "cmake.configureOnOpen": true,
+    "cmake.buildBeforeRun": true,
+    "files.exclude": {
+        "**/*.o": true,
+        "build/": true,
+        "**/.DS_Store": true
+    },
+    "search.exclude": {
+        "build/": true,
+        "**/*.o": true
+    },
+    "clang-format.executable": "clang-format",
+    "clang-format.style": "file"
+} 

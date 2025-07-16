@@ -1,0 +1,225 @@
+print("=== YALOK Algorithm Showcase ===");
+
+print("\n1. Bubble Sort Algorithm");
+var arr = [64, 34, 25, 12, 22, 11, 90];
+print("Original array:", arr);
+
+for (var i = 0; i < len(arr) - 1; i++) {
+    for (var j = 0; j < len(arr) - i - 1; j++) {
+        if (arr[j] > arr[j + 1]) {
+            var temp = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = temp;
+        }
+    }
+}
+print("Sorted array:", arr);
+
+print("\n2. Binary Search");
+var sorted_arr = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+var target = 7;
+var left = 0;
+var right = len(sorted_arr) - 1;
+var found = false;
+var position = -1;
+
+while (left <= right && !found) {
+    var mid = (left + right) / 2;
+    if (sorted_arr[mid] == target) {
+        found = true;
+        position = mid;
+    } else if (sorted_arr[mid] < target) {
+        left = mid + 1;
+    } else {
+        right = mid - 1;
+    }
+}
+
+print("Searching for", target, "in", sorted_arr);
+if (found) {
+    print("Found at position:", position);
+} else {
+    print("Not found");
+}
+
+print("\n3. Prime Number Generator");
+func is_prime(n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
+    
+    var i = 5;
+    while (i * i <= n) {
+        if (n % i == 0 || n % (i + 2) == 0) return false;
+        i += 6;
+    }
+    return true;
+}
+
+print("Prime numbers up to 50:");
+var primes = [];
+for (var i = 2; i <= 50; i++) {
+    if (is_prime(i)) {
+        primes.push(i);
+    }
+}
+print(primes);
+
+print("\n4. Fibonacci Sequence");
+func fibonacci_iterative(n) {
+    if (n <= 1) return n;
+    
+    var a = 0;
+    var b = 1;
+    for (var i = 2; i <= n; i++) {
+        var temp = a + b;
+        a = b;
+        b = temp;
+    }
+    return b;
+}
+
+print("Fibonacci sequence (first 15 numbers):");
+var fib_sequence = [];
+for (var i = 0; i < 15; i++) {
+    fib_sequence.push(fibonacci_iterative(i));
+}
+print(fib_sequence);
+
+print("\n5. Greatest Common Divisor (Euclidean Algorithm)");
+func gcd(a, b) {
+    while (b != 0) {
+        var temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+var num1 = 48;
+var num2 = 18;
+print("GCD of", num1, "and", num2, "is:", gcd(num1, num2));
+
+print("\n6. Quick Sort (Partition-based)");
+func partition(arr, low, high) {
+    var pivot = arr[high];
+    var i = low - 1;
+    
+    for (var j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            var temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+    
+    var temp = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = temp;
+    
+    return i + 1;
+}
+
+func quicksort(arr, low, high) {
+    if (low < high) {
+        var pi = partition(arr, low, high);
+        quicksort(arr, low, pi - 1);
+        quicksort(arr, pi + 1, high);
+    }
+}
+
+var quick_arr = [10, 7, 8, 9, 1, 5];
+print("Array before quicksort:", quick_arr);
+quicksort(quick_arr, 0, len(quick_arr) - 1);
+print("Array after quicksort:", quick_arr);
+
+print("\n7. Matrix Operations");
+func create_matrix(rows, cols, value) {
+    var matrix = [];
+    for (var i = 0; i < rows; i++) {
+        var row = [];
+        for (var j = 0; j < cols; j++) {
+            row.push(value);
+        }
+        matrix.push(row);
+    }
+    return matrix;
+}
+
+func matrix_multiply(a, b) {
+    var rows_a = len(a);
+    var cols_a = len(a[0]);
+    var cols_b = len(b[0]);
+    
+    var result = create_matrix(rows_a, cols_b, 0);
+    
+    for (var i = 0; i < rows_a; i++) {
+        for (var j = 0; j < cols_b; j++) {
+            for (var k = 0; k < cols_a; k++) {
+                result[i][j] += a[i][k] * b[k][j];
+            }
+        }
+    }
+    
+    return result;
+}
+
+var matrix_a = [[1, 2], [3, 4]];
+var matrix_b = [[5, 6], [7, 8]];
+
+print("Matrix A:", matrix_a);
+print("Matrix B:", matrix_b);
+print("A × B =", matrix_multiply(matrix_a, matrix_b));
+
+print("\n8. Palindrome Checker");
+func is_palindrome(str) {
+    var len_str = len(str);
+    for (var i = 0; i < len_str / 2; i++) {
+        if (str[i] != str[len_str - 1 - i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+var test_words = ["racecar", "hello", "madam", "python", "level"];
+print("Palindrome check:");
+for (var i = 0; i < len(test_words); i++) {
+    var word = test_words[i];
+    print(word, "is palindrome:", is_palindrome(word));
+}
+
+print("\n9. Tower of Hanoi");
+func hanoi(n, source, destination, auxiliary) {
+    if (n == 1) {
+        print("Move disk 1 from", source, "to", destination);
+        return;
+    }
+    
+    hanoi(n - 1, source, auxiliary, destination);
+    print("Move disk", n, "from", source, "to", destination);
+    hanoi(n - 1, auxiliary, destination, source);
+}
+
+print("Tower of Hanoi solution for 3 disks:");
+hanoi(3, "A", "C", "B");
+
+print("\n10. Performance Benchmark");
+var start_time = time();
+
+var large_array = [];
+for (var i = 0; i < 1000; i++) {
+    large_array.push(i);
+}
+
+var sum = 0;
+for (var i = 0; i < len(large_array); i++) {
+    sum += large_array[i];
+}
+
+var end_time = time();
+print("Sum of 1000 numbers:", sum);
+print("Time taken:", end_time - start_time, "milliseconds");
+
+print("\n=== Algorithm Showcase Complete ==="); 

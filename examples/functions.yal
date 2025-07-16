@@ -1,0 +1,142 @@
+func add(a, b) {
+    return a + b;
+}
+
+func multiply(a, b) {
+    return a * b;
+}
+
+func greet(name) {
+    return "Hello, " + name + "!";
+}
+
+func factorial(n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+func fibonacci(n) {
+    if (n <= 1) {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+func is_prime(n) {
+    if (n <= 1) {
+        return false;
+    }
+    if (n <= 3) {
+        return true;
+    }
+    if (n % 2 == 0 || n % 3 == 0) {
+        return false;
+    }
+    
+    var i = 5;
+    while (i * i <= n) {
+        if (n % i == 0 || n % (i + 2) == 0) {
+            return false;
+        }
+        i += 6;
+    }
+    return true;
+}
+
+func max(a, b) {
+    return a > b ? a : b;
+}
+
+func min(a, b) {
+    return a < b ? a : b;
+}
+
+func power(base, exp) {
+    var result = 1;
+    for (var i = 0; i < exp; i++) {
+        result *= base;
+    }
+    return result;
+}
+
+func gcd(a, b) {
+    while (b != 0) {
+        var temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+print("=== Function Examples ===");
+
+var result1 = add(5, 3);
+print("add(5, 3) =", result1);
+
+var result2 = multiply(4, 7);
+print("multiply(4, 7) =", result2);
+
+var greeting = greet("YALOK");
+print("greet('YALOK') =", greeting);
+
+var fact = factorial(5);
+print("factorial(5) =", fact);
+
+var fib = fibonacci(10);
+print("fibonacci(10) =", fib);
+
+var prime_check = is_prime(17);
+print("is_prime(17) =", prime_check);
+
+var maximum = max(10, 20);
+print("max(10, 20) =", maximum);
+
+var minimum = min(10, 20);
+print("min(10, 20) =", minimum);
+
+var pow_result = power(2, 8);
+print("power(2, 8) =", pow_result);
+
+var gcd_result = gcd(48, 18);
+print("gcd(48, 18) =", gcd_result);
+
+print("\n=== Higher-Order Functions ===");
+
+func apply_operation(a, b, operation) {
+    return operation(a, b);
+}
+
+var sum = apply_operation(5, 3, add);
+print("apply_operation(5, 3, add) =", sum);
+
+var product = apply_operation(5, 3, multiply);
+print("apply_operation(5, 3, multiply) =", product);
+
+print("\n=== Array Processing ===");
+
+func sum_array(arr) {
+    var total = 0;
+    for (var i = 0; i < len(arr); i++) {
+        total += arr[i];
+    }
+    return total;
+}
+
+func find_max(arr) {
+    if (len(arr) == 0) return nil;
+    
+    var max_val = arr[0];
+    for (var i = 1; i < len(arr); i++) {
+        if (arr[i] > max_val) {
+            max_val = arr[i];
+        }
+    }
+    return max_val;
+}
+
+var numbers = [10, 25, 5, 40, 15];
+print("Array:", numbers);
+print("Sum:", sum_array(numbers));
+print("Max:", find_max(numbers)); 

@@ -1,0 +1,275 @@
+print("=== Object and Data Structure Examples ===");
+
+print("\n1. Basic Objects");
+var person = {
+    name: "John Doe",
+    age: 30,
+    city: "New York",
+    occupation: "Developer"
+};
+
+print("Person:", person);
+print("Name:", person.name);
+print("Age:", person.age);
+
+person.age = 31;
+person.email = "john@example.com";
+print("Updated person:", person);
+
+print("\n2. Nested Objects");
+var company = {
+    name: "TechCorp",
+    location: {
+        city: "San Francisco",
+        state: "CA",
+        country: "USA"
+    },
+    employees: [
+        {
+            name: "Alice",
+            position: "Manager",
+            salary: 80000
+        },
+        {
+            name: "Bob",
+            position: "Developer",
+            salary: 70000
+        }
+    ]
+};
+
+print("Company:", company.name);
+print("Location:", company.location.city, company.location.state);
+print("First employee:", company.employees[0].name);
+
+print("\n3. Array of Objects");
+var students = [
+    { name: "Emma", grade: 85, subject: "Math" },
+    { name: "Liam", grade: 92, subject: "Science" },
+    { name: "Olivia", grade: 78, subject: "English" },
+    { name: "Noah", grade: 95, subject: "History" }
+];
+
+print("Students:");
+for (var i = 0; i < len(students); i++) {
+    var student = students[i];
+    print("-", student.name, ":", student.grade, "in", student.subject);
+}
+
+var total_grade = 0;
+for (var i = 0; i < len(students); i++) {
+    total_grade += students[i].grade;
+}
+var average = total_grade / len(students);
+print("Average grade:", average);
+
+print("\n4. Object as Function Parameters");
+func display_user_info(user) {
+    print("User Information:");
+    print("- Name:", user.name);
+    print("- Age:", user.age);
+    print("- Active:", user.active);
+}
+
+func update_user_status(user, new_status) {
+    user.active = new_status;
+    user.last_updated = "2024-01-01";
+}
+
+var user = {
+    name: "Sarah",
+    age: 25,
+    active: true
+};
+
+display_user_info(user);
+update_user_status(user, false);
+print("After update:", user);
+
+print("\n5. Dynamic Object Creation");
+func create_product(name, price, category) {
+    return {
+        name: name,
+        price: price,
+        category: category,
+        in_stock: true,
+        created_at: "2024-01-01"
+    };
+}
+
+var products = [];
+products.push(create_product("Laptop", 999.99, "Electronics"));
+products.push(create_product("Book", 19.99, "Education"));
+products.push(create_product("Chair", 149.99, "Furniture"));
+
+print("Products:");
+for (var i = 0; i < len(products); i++) {
+    var product = products[i];
+    print("-", product.name, ":", "$" + str(product.price), "(" + product.category + ")");
+}
+
+print("\n6. Object Methods (Functions as Properties)");
+var calculator = {
+    result: 0,
+    add: func(x) {
+        this.result += x;
+        return this;
+    },
+    multiply: func(x) {
+        this.result *= x;
+        return this;
+    },
+    get_result: func() {
+        return this.result;
+    },
+    reset: func() {
+        this.result = 0;
+        return this;
+    }
+};
+
+calculator.add(5).multiply(3).add(2);
+print("Calculator result:", calculator.get_result());
+
+calculator.reset();
+print("After reset:", calculator.get_result());
+
+print("\n7. Complex Data Structure - Library System");
+var library = {
+    name: "City Library",
+    books: [
+        {
+            id: 1,
+            title: "The Great Gatsby",
+            author: "F. Scott Fitzgerald",
+            year: 1925,
+            available: true
+        },
+        {
+            id: 2,
+            title: "To Kill a Mockingbird",
+            author: "Harper Lee",
+            year: 1960,
+            available: false
+        },
+        {
+            id: 3,
+            title: "1984",
+            author: "George Orwell",
+            year: 1949,
+            available: true
+        }
+    ],
+    members: [
+        {
+            id: 101,
+            name: "Alice Johnson",
+            borrowed_books: [2]
+        },
+        {
+            id: 102,
+            name: "Bob Smith",
+            borrowed_books: []
+        }
+    ]
+};
+
+func find_book_by_id(library, book_id) {
+    for (var i = 0; i < len(library.books); i++) {
+        if (library.books[i].id == book_id) {
+            return library.books[i];
+        }
+    }
+    return nil;
+}
+
+func get_available_books(library) {
+    var available = [];
+    for (var i = 0; i < len(library.books); i++) {
+        if (library.books[i].available) {
+            available.push(library.books[i]);
+        }
+    }
+    return available;
+}
+
+print("Library:", library.name);
+print("Total books:", len(library.books));
+print("Total members:", len(library.members));
+
+var available_books = get_available_books(library);
+print("Available books:");
+for (var i = 0; i < len(available_books); i++) {
+    var book = available_books[i];
+    print("-", book.title, "by", book.author);
+}
+
+print("\n8. JSON-like Data Structure");
+var api_response = {
+    status: "success",
+    data: {
+        users: [
+            {
+                id: 1,
+                profile: {
+                    name: "John",
+                    avatar: "avatar1.jpg",
+                    settings: {
+                        notifications: true,
+                        theme: "dark"
+                    }
+                },
+                posts: [
+                    { id: 101, content: "Hello World!", likes: 15 },
+                    { id: 102, content: "Learning YALOK!", likes: 32 }
+                ]
+            }
+        ]
+    },
+    metadata: {
+        total_count: 1,
+        page: 1,
+        per_page: 10
+    }
+};
+
+print("API Response Status:", api_response.status);
+print("Total users:", api_response.metadata.total_count);
+print("First user:", api_response.data.users[0].profile.name);
+print("User theme:", api_response.data.users[0].profile.settings.theme);
+print("First post likes:", api_response.data.users[0].posts[0].likes);
+
+print("\n9. Object Serialization");
+func object_to_string(obj) {
+    var result = "{";
+    var first = true;
+    
+    for (var key in obj) {
+        if (!first) {
+            result += ", ";
+        }
+        result += key + ": ";
+        
+        var value = obj[key];
+        if (type(value) == "string") {
+            result += "\"" + value + "\"";
+        } else {
+            result += str(value);
+        }
+        
+        first = false;
+    }
+    
+    result += "}";
+    return result;
+}
+
+var simple_obj = {
+    name: "Test",
+    value: 42,
+    active: true
+};
+
+print("Object serialization:", object_to_string(simple_obj));
+
+print("\n=== Object Examples Complete ==="); 
