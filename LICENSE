@@ -1,21 +1,44 @@
-MIT License
+YALOK Programming Language - Proprietary License
 
-Copyright (c) 2025 YALOKGAR
+Copyright (c) 2024 YALOKGAR (yalokgar@gmail.com)
+All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+EXCLUSIVE OWNERSHIP NOTICE:
+This software, including but not limited to all source code, compiled binaries, 
+documentation, examples, build scripts, configuration files, and any related 
+materials (collectively "the Software"), is the exclusive property of YALOKGAR.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+PROHIBITED USES:
+- You may NOT copy, modify, merge, publish, distribute, sublicense, or sell 
+  copies of the Software or any portion thereof.
+- You may NOT reverse engineer, decompile, disassemble, or attempt to derive 
+  the source code from compiled binaries.
+- You may NOT create derivative works based on the Software.
+- You may NOT use the Software for any commercial or non-commercial purposes.
+- You may NOT fork, clone, or otherwise duplicate this repository.
+- You may NOT study, analyze, or learn from the source code.
+- You may NOT use any part of the Software in other projects.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE. 
+PERMITTED USE:
+The ONLY permitted use is running the officially compiled and distributed 
+ready-made version of the YALOK programming language as provided by YALOKGAR, 
+and only for educational or personal testing purposes.
+
+DISCLAIMER:
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+YALOKGAR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+ENFORCEMENT:
+Any violation of this license will result in immediate termination of any 
+rights granted herein and may result in legal action.
+
+This license is governed by international copyright law.
+
+For any questions or permissions, contact: yalokgar@gmail.com
+GitHub: https://github.com/YALOKGARua
+
+YALOKGAR retains all rights not expressly granted herein. 
