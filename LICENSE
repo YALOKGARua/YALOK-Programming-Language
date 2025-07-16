@@ -1,44 +1,220 @@
-YALOK Programming Language - Proprietary License
+YALOK Programming Language - Proprietary Demo License
 
 Copyright (c) 2025 YALOKGAR (yalokgar@gmail.com)
 All rights reserved.
 
-EXCLUSIVE OWNERSHIP NOTICE:
-This software, including but not limited to all source code, compiled binaries, 
-documentation, examples, build scripts, configuration files, and any related 
-materials (collectively "the Software"), is the exclusive property of YALOKGAR.
+================================================================================
+⚠️  CRITICAL NOTICE: THIS IS A DEMO VERSION ONLY
+================================================================================
 
-PROHIBITED USES:
-- You may NOT copy, modify, merge, publish, distribute, sublicense, or sell 
-  copies of the Software or any portion thereof.
-- You may NOT reverse engineer, decompile, disassemble, or attempt to derive 
-  the source code from compiled binaries.
-- You may NOT create derivative works based on the Software.
-- You may NOT use the Software for any commercial or non-commercial purposes.
-- You may NOT fork, clone, or otherwise duplicate this repository.
-- You may NOT study, analyze, or learn from the source code.
-- You may NOT use any part of the Software in other projects.
+This repository contains a LIMITED DEMO VERSION of the YALOK programming 
+language. The complete, professional-grade YALOK language with full features, 
+optimizations, and capabilities is PROPRIETARY SOFTWARE owned exclusively by 
+YALOKGAR and is NOT publicly available.
 
-PERMITTED USE:
-The ONLY permitted use is running the officially compiled and distributed 
-ready-made version of the YALOK programming language as provided by YALOKGAR, 
-and only for educational or personal testing purposes.
+================================================================================
+🚨  DEMO VERSION RESTRICTIONS
+================================================================================
 
-DISCLAIMER:
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-YALOKGAR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
-ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+WHAT THIS DEMO VERSION IS:
+- Educational demonstration of basic syntax
+- Limited functionality for learning purposes
+- Testing environment for academic research
+- Preview of the language concept
+- Non-commercial evaluation tool
+
+WHAT THIS DEMO VERSION IS NOT:
+- The complete YALOK programming language
+- A production-ready development tool
+- A commercially viable software solution
+- Representative of full language capabilities
+- Suitable for professional or commercial use
+
+================================================================================
+🔒  EXCLUSIVE OWNERSHIP NOTICE
+================================================================================
+
+FULL VERSION OWNERSHIP:
+- The complete YALOK programming language is exclusively owned by YALOKGAR
+- All advanced features, optimizations, and professional tools are proprietary
+- Source code of the full version is classified and not publicly available
+- Professional documentation and support are exclusive to YALOKGAR
+- Commercial licenses are available only through YALOKGAR
+
+DEMO VERSION STATUS:
+- This demo is provided as a limited preview
+- No warranty, support, or updates are provided
+- Functionality is intentionally restricted
+- Performance is deliberately limited
+- Many features are disabled or removed
+
+================================================================================
+📋  PERMITTED USES (DEMO VERSION ONLY)
+================================================================================
+
+You MAY:
+- Run the demo version for educational purposes
+- Study basic syntax and language concepts
+- Use for academic research and learning
+- Test simple code examples and tutorials
+- Experiment with basic programming constructs
+- Share educational experiences about the demo
+
+You MUST:
+- Acknowledge this is a demo version in any references
+- Include proper attribution to YALOKGAR
+- Respect the limitations and restrictions
+- Contact YALOKGAR for commercial or professional use
+- Understand this is not the complete language
+
+================================================================================
+🚫  PROHIBITED USES (STRICTLY FORBIDDEN)
+================================================================================
+
+You MAY NOT:
+- Use this demo version in production environments
+- Distribute, sell, or commercialize the software
+- Reverse engineer, decompile, or disassemble
+- Create derivative works or modifications
+- Fork, clone, or duplicate this repository
+- Study internal implementation details
+- Perform security analysis or vulnerability testing
+- Use for commercial projects or profit
+- Claim ownership or create competing products
+- Remove copyright notices or licensing information
+- Benchmark or compare performance publicly
+- Use in enterprise or business applications
+
+SPECIFIC RESTRICTIONS:
+- No static analysis tools may be used
+- No code profiling or optimization attempts
+- No integration with other development tools
+- No packaging or redistribution in any form
+- No translation or porting to other platforms
+- No use in educational institutions without permission
+- No inclusion in software libraries or frameworks
+- No use in open source or closed source projects
+
+================================================================================
+🏢  PROFESSIONAL/COMMERCIAL LICENSING
+================================================================================
+
+For professional, commercial, or advanced use cases:
+
+CONTACT INFORMATION:
+- Author: YALOKGAR
+- Email: yalokgar@gmail.com
+- GitHub: https://github.com/YALOKGARua
+
+AVAILABLE SERVICES:
+- Professional YALOK language licenses
+- Commercial support and consulting
+- Custom development and integration
+- Training and certification programs
+- Enterprise deployment solutions
+
+PRICING:
+- Professional licenses available on request
+- Commercial support packages available
+- Custom development rates available
+- Enterprise solutions priced individually
+
+================================================================================
+⚖️  LEGAL TERMS AND CONDITIONS
+================================================================================
 
 ENFORCEMENT:
-Any violation of this license will result in immediate termination of any 
-rights granted herein and may result in legal action.
+- Violations will be tracked and prosecuted
+- Legal action may be taken for unauthorized use
+- Cease and desist orders may be issued
+- Damages may be sought for commercial violations
+- International copyright law applies
 
-This license is governed by international copyright law.
+JURISDICTION:
+- Governed by international copyright law
+- Disputes resolved in YALOKGAR's jurisdiction
+- Ukrainian and international law applies
+- Arbitration may be required for disputes
 
-For any questions or permissions, contact: yalokgar@gmail.com
+MONITORING:
+- Usage may be monitored for compliance
+- Violation reports are actively investigated
+- Automated systems may detect misuse
+- Community reports are encouraged
+
+================================================================================
+🛡️  DISCLAIMER AND WARRANTY
+================================================================================
+
+DEMO VERSION WARRANTY:
+THE DEMO VERSION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THE AUTHOR DISCLAIMS 
+ALL WARRANTIES REGARDING THIS DEMO VERSION.
+
+LIMITATION OF LIABILITY:
+IN NO EVENT SHALL YALOKGAR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR 
+IN CONNECTION WITH THE DEMO VERSION OR THE USE OR OTHER DEALINGS IN THE DEMO 
+VERSION.
+
+SUPPORT DISCLAIMER:
+- No bug fixes or updates will be released
+- No documentation beyond this README is provided
+- No compatibility guarantees are made
+- No performance warranties are given
+
+================================================================================
+📜  VERSION HISTORY AND UPDATES
+================================================================================
+
+VERSION INFORMATION:
+- Current Demo Version: 1.0-DEMO
+- Release Date: 2025
+- Last Updated: 2025
+
+LICENSE UPDATES:
+- This license may be updated without notice
+- Continued use constitutes acceptance of updates
+- Users are responsible for monitoring license changes
+- Breaking changes may be introduced at any time
+
+================================================================================
+🎓  EDUCATIONAL USE GUIDELINES
+================================================================================
+
+EDUCATIONAL INSTITUTIONS:
+- Academic use requires explicit permission
+- Contact YALOKGAR for educational licenses
+- Classroom use must be pre-approved
+- Student projects must acknowledge demo status
+- Research publications must cite properly
+
+INDIVIDUAL LEARNING:
+- Personal study and experimentation allowed
+- Blog posts and tutorials encouraged (with attribution)
+- Code examples may be shared with proper notice
+- Learning materials may reference demo features
+- Community discussions are welcome
+
+================================================================================
+📞  CONTACT AND SUPPORT
+================================================================================
+
+For any questions, permissions, or licensing inquiries:
+
+YALOKGAR
+Email: yalokgar@gmail.com
 GitHub: https://github.com/YALOKGARua
+Professional Inquiries: yalokgar@gmail.com
 
-YALOKGAR retains all rights not expressly granted herein. 
+================================================================================
+
+⚠️  FINAL WARNING: This is a DEMO VERSION with LIMITED FUNCTIONALITY. 
+The complete YALOK programming language is proprietary software owned 
+exclusively by YALOKGAR. Unauthorized use will be prosecuted to the full 
+extent of the law.
+
+================================================================================
+
+END OF LICENSE 

@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <functional>
 
 namespace yalok {
 
@@ -13,7 +14,7 @@ public:
     RuntimeError(const std::string& message) : std::runtime_error(message) {}
 };
 
-class Environment {
+class Environment : public std::enable_shared_from_this<Environment> {
 private:
     std::map<std::string, Value> variables;
     std::shared_ptr<Environment> parent;
@@ -82,8 +83,19 @@ public:
     void interpret(const std::vector<std::unique_ptr<Statement>>& statements);
     
     void reset();
+    void cleanup() { reset(); }
     std::shared_ptr<Environment> get_global_environment() { return globals; }
     std::shared_ptr<Environment> get_current_environment() { return environment; }
+    
+    struct MemoryStats {
+        size_t total_allocated;
+        size_t total_used;
+        size_t available;
+        size_t block_count;
+        size_t fragmentation_percent;
+    };
+    
+    MemoryStats get_memory_stats() const;
     
     void set_return_flag(bool flag) { should_return = flag; }
     void set_break_flag(bool flag) { should_break = flag; }
