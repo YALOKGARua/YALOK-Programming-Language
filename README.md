@@ -351,19 +351,17 @@ inject("target_process", shellcode);
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🤝 Contributing
+## 🚫 Usage Restrictions
 
-Join the underground development! 
+**PROPRIETARY SOFTWARE - ALL RIGHTS RESERVED**
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-exploit`)
-3. Commit your changes (`git commit -m 'Add new exploit technique'`)
-4. Push to the branch (`git push origin feature/new-exploit`)
-5. Create a Pull Request
+This software is exclusively owned by YALOKGAR. No contributions, forks, or modifications are permitted. Only the officially compiled ready-made version may be used for educational or personal testing purposes.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a **Proprietary License** - see the [LICENSE](LICENSE) file for complete restrictions and terms. 
+
+**⚠️ IMPORTANT: This is proprietary software owned exclusively by YALOKGAR. You may ONLY use the ready-made compiled version. All source code, documentation, and materials are strictly prohibited from any use, modification, or distribution.**
 
 ## ⚠️ Disclaimer
 
