@@ -1,0 +1,36 @@
+# YALOK :: binary operations
+
+echo("=== BINARY OPS ===")
+
+load a: i64 = 0xDEAD
+load b: i64 = 0xBEEF
+load c: i64 = 0b11001010
+
+echo("a =", hex(a))
+echo("b =", hex(b))
+echo("c =", bits(c))
+
+echo("")
+echo("a & b  =", hex(a & b))
+echo("a | b  =", hex(a | b))
+echo("a ^ b  =", hex(a ^ b))
+echo("~c     =", bits(~c & 0xFF))
+echo("c << 4 =", bits(c << 4))
+echo("c >> 2 =", bits(c >> 2))
+
+echo("")
+load payload: buf = [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x59, 0x41, 0x4C, 0x4F, 0x4B]
+echo("payload:", payload)
+probe payload
+
+echo("")
+echo("byte[0] =", hex(payload[0]))
+echo("byte[6] =", hex(payload[6]))
+
+cell big_buf: buf = alloc(32)
+scan i thru 0..32 {
+    big_buf[i] = i * 7 & 0xFF
+}
+echo("")
+echo("generated buffer:")
+hexdump(big_buf)

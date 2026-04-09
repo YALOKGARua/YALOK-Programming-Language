@@ -1,0 +1,35 @@
+# YALOK :: packet structures
+
+echo("=== PACKET DEMO ===")
+
+packet Header {
+    magic: i64,
+    version: i64,
+    size: i64,
+    flags: i64,
+}
+
+packet NetPacket {
+    src_port: i64,
+    dst_port: i64,
+    seq: i64,
+    payload_size: i64,
+}
+
+load hdr = Header { magic: 0x59414C, version: 1, size: 64, flags: 0x03 }
+echo("Header:")
+probe hdr
+echo("  magic =", hex(hdr.magic))
+echo("  flags =", bits(hdr.flags))
+
+echo("")
+
+load pkt = NetPacket { src_port: 4444, dst_port: 80, seq: 1, payload_size: 256 }
+echo("NetPacket:")
+probe pkt
+
+proc describe(p_src: i64, p_dst: i64, p_seq: i64) {
+    echo("  route:", p_src, "->", p_dst, "seq:", p_seq)
+}
+
+describe(pkt.src_port, pkt.dst_port, pkt.seq)

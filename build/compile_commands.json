@@ -1,0 +1,26 @@
+[
+{
+  "directory": "C:/Users/User_/Desktop/YALOK-Programming-Language/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe  @CMakeFiles/yalok.dir/includes_CXX.rsp -std=gnu++17 -Wall -Wextra -O2 -o CMakeFiles\\yalok.dir\\src\\main.cpp.obj -c C:\\Users\\User_\\Desktop\\YALOK-Programming-Language\\src\\main.cpp",
+  "file": "C:/Users/User_/Desktop/YALOK-Programming-Language/src/main.cpp",
+  "output": "CMakeFiles/yalok.dir/src/main.cpp.obj"
+},
+{
+  "directory": "C:/Users/User_/Desktop/YALOK-Programming-Language/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe  @CMakeFiles/yalok.dir/includes_CXX.rsp -std=gnu++17 -Wall -Wextra -O2 -o CMakeFiles\\yalok.dir\\src\\lexer.cpp.obj -c C:\\Users\\User_\\Desktop\\YALOK-Programming-Language\\src\\lexer.cpp",
+  "file": "C:/Users/User_/Desktop/YALOK-Programming-Language/src/lexer.cpp",
+  "output": "CMakeFiles/yalok.dir/src/lexer.cpp.obj"
+},
+{
+  "directory": "C:/Users/User_/Desktop/YALOK-Programming-Language/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe  @CMakeFiles/yalok.dir/includes_CXX.rsp -std=gnu++17 -Wall -Wextra -O2 -o CMakeFiles\\yalok.dir\\src\\parser.cpp.obj -c C:\\Users\\User_\\Desktop\\YALOK-Programming-Language\\src\\parser.cpp",
+  "file": "C:/Users/User_/Desktop/YALOK-Programming-Language/src/parser.cpp",
+  "output": "CMakeFiles/yalok.dir/src/parser.cpp.obj"
+},
+{
+  "directory": "C:/Users/User_/Desktop/YALOK-Programming-Language/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\c++.exe  @CMakeFiles/yalok.dir/includes_CXX.rsp -std=gnu++17 -Wall -Wextra -O2 -o CMakeFiles\\yalok.dir\\src\\interpreter.cpp.obj -c C:\\Users\\User_\\Desktop\\YALOK-Programming-Language\\src\\interpreter.cpp",
+  "file": "C:/Users/User_/Desktop/YALOK-Programming-Language/src/interpreter.cpp",
+  "output": "CMakeFiles/yalok.dir/src/interpreter.cpp.obj"
+}
+]

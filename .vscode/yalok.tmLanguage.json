@@ -1,0 +1,206 @@
+{
+    "name": "YALOK",
+    "scopeName": "source.yalok",
+    "fileTypes": ["yal"],
+    "patterns": [
+        { "include": "#comments" },
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "include": "#keywords" },
+        { "include": "#types" },
+        { "include": "#builtins" },
+        { "include": "#booleans" },
+        { "include": "#operators" },
+        { "include": "#punctuation" },
+        { "include": "#proc-def" },
+        { "include": "#packet-def" },
+        { "include": "#identifiers" }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.hash.yalok",
+                    "match": "#.*$"
+                },
+                {
+                    "name": "comment.line.double-slash.yalok",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.yalok",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.yalok",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.yalok",
+                            "match": "\\\\."
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.single.yalok",
+                    "begin": "'",
+                    "end": "'",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.yalok",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.hex.yalok",
+                    "match": "\\b0[xX][0-9a-fA-F_]+\\b"
+                },
+                {
+                    "name": "constant.numeric.binary.yalok",
+                    "match": "\\b0[bB][01_]+\\b"
+                },
+                {
+                    "name": "constant.numeric.float.yalok",
+                    "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9]+)?\\b"
+                },
+                {
+                    "name": "constant.numeric.integer.yalok",
+                    "match": "\\b[0-9][0-9_]*\\b"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.yalok",
+                    "match": "\\b(check|alt|loop|scan|thru|gate|halt|skip|ret)\\b"
+                },
+                {
+                    "name": "keyword.declaration.yalok",
+                    "match": "\\b(load|cell|proc|packet)\\b"
+                },
+                {
+                    "name": "keyword.other.yalok",
+                    "match": "\\b(probe|breach)\\b"
+                },
+                {
+                    "name": "constant.language.null.yalok",
+                    "match": "\\bnil\\b"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "support.type.yalok",
+                    "match": "\\b(i64|f64|str|buf|bool)\\b"
+                }
+            ]
+        },
+        "builtins": {
+            "patterns": [
+                {
+                    "name": "support.function.yalok",
+                    "match": "\\b(echo|emit|size|hex|bits|alloc|hexdump|identify|str|i64|f64|input|tick|rand|push|pop|slice|chr|ord|kill)(?=\\s*\\()"
+                }
+            ]
+        },
+        "booleans": {
+            "patterns": [
+                {
+                    "name": "constant.language.boolean.yalok",
+                    "match": "\\b(on|off)\\b"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.pipe.yalok",
+                    "match": "\\|>"
+                },
+                {
+                    "name": "keyword.operator.arrow.yalok",
+                    "match": "->|=>"
+                },
+                {
+                    "name": "keyword.operator.range.yalok",
+                    "match": "\\.\\."
+                },
+                {
+                    "name": "keyword.operator.comparison.yalok",
+                    "match": "==|!=|<=|>=|<|>"
+                },
+                {
+                    "name": "keyword.operator.logical.yalok",
+                    "match": "&&|\\|\\||!"
+                },
+                {
+                    "name": "keyword.operator.bitwise.yalok",
+                    "match": "<<|>>|&|\\||\\^|~"
+                },
+                {
+                    "name": "keyword.operator.assignment.yalok",
+                    "match": "[+\\-*/%&|^]?=|<<=|>>="
+                },
+                {
+                    "name": "keyword.operator.arithmetic.yalok",
+                    "match": "[+\\-*/%]"
+                }
+            ]
+        },
+        "punctuation": {
+            "patterns": [
+                {
+                    "name": "punctuation.separator.yalok",
+                    "match": "[,;:]"
+                },
+                {
+                    "name": "punctuation.bracket.yalok",
+                    "match": "[(){}\\[\\]]"
+                }
+            ]
+        },
+        "proc-def": {
+            "patterns": [
+                {
+                    "match": "\\b(proc)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+                    "captures": {
+                        "1": { "name": "keyword.declaration.yalok" },
+                        "2": { "name": "entity.name.function.yalok" }
+                    }
+                }
+            ]
+        },
+        "packet-def": {
+            "patterns": [
+                {
+                    "match": "\\b(packet)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+                    "captures": {
+                        "1": { "name": "keyword.declaration.yalok" },
+                        "2": { "name": "entity.name.type.yalok" }
+                    }
+                }
+            ]
+        },
+        "identifiers": {
+            "patterns": [
+                {
+                    "name": "variable.other.yalok",
+                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+                }
+            ]
+        }
+    }
+}

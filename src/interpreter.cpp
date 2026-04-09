@@ -1,585 +1,672 @@
 #include "yalok/interpreter.hpp"
-#include "yalok/ast.hpp"
-#include "yalok/value.hpp"
 #include <iostream>
 #include <sstream>
-#include <algorithm>
-#include <cmath>
-#include <random>
+#include <iomanip>
 #include <chrono>
+#include <cstdlib>
+#include <algorithm>
+#include <cctype>
+#include <random>
 
 namespace yalok {
 
-void Environment::define(const std::string& name, const Value& value) {
-    variables[name] = value;
+Environment::Environment(Environment* parent) : parent_(parent) {}
+
+void Environment::define(const std::string& name, Value val, bool is_cell) {
+    vars_[name] = {std::move(val), is_cell};
 }
 
-Value Environment::get(const std::string& name) {
-    auto it = variables.find(name);
-    if (it != variables.end()) {
-        return it->second;
-    }
-    
-    if (parent) {
-        return parent->get(name);
-    }
-    
-    throw RuntimeError("Undefined variable: " + name);
+Value& Environment::get(const std::string& name) {
+    auto it = vars_.find(name);
+    if (it != vars_.end()) return it->second.value;
+    if (parent_) return parent_->get(name);
+    throw RuntimeError("undefined: '" + name + "'");
 }
 
-void Environment::assign(const std::string& name, const Value& value) {
-    auto it = variables.find(name);
-    if (it != variables.end()) {
-        it->second = value;
+void Environment::set(const std::string& name, const Value& val) {
+    auto it = vars_.find(name);
+    if (it != vars_.end()) {
+        if (!it->second.is_cell)
+            throw RuntimeError("'" + name + "' is immutable (use 'cell' to make it mutable)");
+        it->second.value = val;
         return;
     }
-    
-    if (parent) {
-        parent->assign(name, value);
-        return;
-    }
-    
-    throw RuntimeError("Undefined variable: " + name);
+    if (parent_) { parent_->set(name, val); return; }
+    throw RuntimeError("undefined: '" + name + "'");
 }
 
-bool Environment::exists(const std::string& name) {
-    if (variables.find(name) != variables.end()) {
-        return true;
-    }
-    
-    if (parent) {
-        return parent->exists(name);
-    }
-    
+bool Environment::has(const std::string& name) const {
+    if (vars_.count(name)) return true;
+    if (parent_) return parent_->has(name);
     return false;
 }
 
-std::shared_ptr<Environment> Environment::create_child() {
-    return std::make_shared<Environment>(shared_from_this());
+Interpreter::Interpreter() : global_(std::make_unique<Environment>()) {
+    registerBuiltins();
 }
 
-Function::Function(const std::string& name, const std::vector<std::string>& params, 
-                   std::vector<std::unique_ptr<Statement>> body, std::shared_ptr<Environment> closure)
-    : name(name), parameters(params), body(std::move(body)), closure(closure) {
-}
-
-Value Function::call(const std::vector<Value>& arguments, Interpreter& interpreter) {
-    if (arguments.size() != parameters.size()) {
-        throw RuntimeError("Function '" + name + "' expects " + std::to_string(parameters.size()) + 
-                          " arguments, got " + std::to_string(arguments.size()));
-    }
-    
-    auto function_env = closure->create_child();
-    
-    for (size_t i = 0; i < parameters.size(); ++i) {
-        function_env->define(parameters[i], arguments[i]);
-    }
-    
-    interpreter.execute_block(body, function_env);
-    
-    if (interpreter.get_return_flag()) {
-        Value result = interpreter.get_return_value();
-        interpreter.set_return_flag(false);
-        return result;
-    }
-    
-    return Value();
-}
-
-Value NativeFunction::call(const std::vector<Value>& arguments) {
-    return function(arguments);
-}
-
-Interpreter::Interpreter() {
-    globals = std::make_shared<Environment>();
-    environment = globals;
-    define_native_functions();
-}
-
-void Interpreter::define_native_functions() {
-    auto print_func = std::make_unique<NativeFunction>("print", [](const std::vector<Value>& args) -> Value {
+void Interpreter::registerBuiltins() {
+    global_->define("emit", Value(NativeFn([](std::vector<Value>& args) -> Value {
         for (size_t i = 0; i < args.size(); ++i) {
-            if (i > 0) std::cout << " ";
-            std::cout << args[i].to_string();
+            if (i) std::cout << " ";
+            std::cout << args[i].toString();
         }
-        std::cout << std::endl;
         return Value();
-    });
-    
-    auto len_func = std::make_unique<NativeFunction>("len", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 1) {
-            throw RuntimeError("len() takes exactly 1 argument");
+    })));
+
+    global_->define("echo", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        for (size_t i = 0; i < args.size(); ++i) {
+            if (i) std::cout << " ";
+            std::cout << args[i].toString();
         }
-        
-        const Value& arg = args[0];
-        if (arg.is_string()) {
-            return Value(static_cast<int>(arg.get_string().length()));
-        } else if (arg.is_array()) {
-            return Value(static_cast<int>(arg.get_array().size()));
-        } else {
-            throw RuntimeError("len() argument must be string or array");
+        std::cout << "\n";
+        return Value();
+    })));
+
+    global_->define("size", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("size() takes 1 argument");
+        if (args[0].isStr()) return Value(static_cast<int64_t>(args[0].asStr().size()));
+        if (args[0].isBuf()) return Value(static_cast<int64_t>(args[0].asBuf().size()));
+        throw RuntimeError("size() expects str or buf");
+    })));
+
+    global_->define("hex", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("hex() takes 1 argument");
+        return Value(args[0].toHex());
+    })));
+
+    global_->define("bits", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("bits() takes 1 argument");
+        if (!args[0].isInt()) throw RuntimeError("bits() expects i64");
+        std::string result = "0b";
+        int64_t val = args[0].asInt();
+        if (val == 0) return Value(std::string("0b0"));
+        bool started = false;
+        for (int i = 63; i >= 0; --i) {
+            if (val & (1LL << i)) { started = true; result += '1'; }
+            else if (started) result += '0';
         }
-    });
-    
-    auto str_func = std::make_unique<NativeFunction>("str", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 1) {
-            throw RuntimeError("str() takes exactly 1 argument");
+        return Value(result);
+    })));
+
+    global_->define("alloc", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty() || !args[0].isInt()) throw RuntimeError("alloc() takes i64 size");
+        auto sz = args[0].asInt();
+        if (sz < 0 || sz > 1024 * 1024 * 64)
+            throw RuntimeError("alloc() size out of range");
+        return Value(Value::Buf(static_cast<size_t>(sz), 0));
+    })));
+
+    global_->define("hexdump", Value(NativeFn([this](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("hexdump() takes 1 argument");
+        if (args[0].isBuf()) hexdump(args[0].asBuf());
+        else std::cout << args[0].toString() << "\n";
+        return Value();
+    })));
+
+    global_->define("identify", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("identify() takes 1 argument");
+        return Value(args[0].typeName());
+    })));
+
+    global_->define("str", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("str() takes 1 argument");
+        return Value(args[0].toString());
+    })));
+
+    global_->define("i64", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("i64() takes 1 argument");
+        if (args[0].isInt()) return args[0];
+        if (args[0].isFloat()) return Value(static_cast<int64_t>(args[0].asFloat()));
+        if (args[0].isStr()) return Value(std::stoll(args[0].asStr()));
+        if (args[0].isBool()) return Value(static_cast<int64_t>(args[0].asBool()));
+        throw RuntimeError("cannot convert to i64");
+    })));
+
+    global_->define("f64", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty()) throw RuntimeError("f64() takes 1 argument");
+        if (args[0].isFloat()) return args[0];
+        if (args[0].isInt()) return Value(static_cast<double>(args[0].asInt()));
+        if (args[0].isStr()) return Value(std::stod(args[0].asStr()));
+        throw RuntimeError("cannot convert to f64");
+    })));
+
+    global_->define("input", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (!args.empty()) std::cout << args[0].toString();
+        std::string line;
+        std::getline(std::cin, line);
+        return Value(line);
+    })));
+
+    global_->define("tick", Value(NativeFn([](std::vector<Value>&) -> Value {
+        auto now = std::chrono::steady_clock::now().time_since_epoch();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+        return Value(static_cast<int64_t>(ms));
+    })));
+
+    global_->define("rand", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        static std::mt19937_64 rng(std::random_device{}());
+        if (args.size() >= 2 && args[0].isInt() && args[1].isInt()) {
+            std::uniform_int_distribution<int64_t> dist(args[0].asInt(), args[1].asInt());
+            return Value(dist(rng));
         }
-        return Value(args[0].to_string());
-    });
-    
-    auto int_func = std::make_unique<NativeFunction>("int", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 1) {
-            throw RuntimeError("int() takes exactly 1 argument");
-        }
-        
-        const Value& arg = args[0];
-        if (arg.is_number()) {
-            return Value(static_cast<int>(arg.get_number()));
-        } else if (arg.is_string()) {
-            try {
-                return Value(std::stoi(arg.get_string()));
-            } catch (const std::exception&) {
-                throw RuntimeError("Cannot convert string to int: " + arg.get_string());
-            }
-        } else {
-            throw RuntimeError("int() argument must be number or string");
-        }
-    });
-    
-    auto float_func = std::make_unique<NativeFunction>("float", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 1) {
-            throw RuntimeError("float() takes exactly 1 argument");
-        }
-        
-        const Value& arg = args[0];
-        if (arg.is_number()) {
-            return arg;
-        } else if (arg.is_string()) {
-            try {
-                return Value(std::stod(arg.get_string()));
-            } catch (const std::exception&) {
-                throw RuntimeError("Cannot convert string to float: " + arg.get_string());
-            }
-        } else {
-            throw RuntimeError("float() argument must be number or string");
-        }
-    });
-    
-    auto type_func = std::make_unique<NativeFunction>("type", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 1) {
-            throw RuntimeError("type() takes exactly 1 argument");
-        }
-        
-        const Value& arg = args[0];
-        if (arg.is_nil()) {
-            return Value("nil");
-        } else if (arg.is_boolean()) {
-            return Value("boolean");
-        } else if (arg.is_number()) {
-            return Value("number");
-        } else if (arg.is_string()) {
-            return Value("string");
-        } else if (arg.is_array()) {
-            return Value("array");
-        } else if (arg.is_object()) {
-            return Value("object");
-        } else {
-            return Value("unknown");
-        }
-    });
-    
-    auto push_func = std::make_unique<NativeFunction>("push", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 2) {
-            throw RuntimeError("push() takes exactly 2 arguments");
-        }
-        
-        Value arr = args[0];
-        if (!arr.is_array()) {
-            throw RuntimeError("push() first argument must be array");
-        }
-        
-        auto array = arr.get_array();
-        array.push_back(args[1]);
-        return Value(array);
-    });
-    
-    auto pop_func = std::make_unique<NativeFunction>("pop", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 1) {
-            throw RuntimeError("pop() takes exactly 1 argument");
-        }
-        
-        Value arr = args[0];
-        if (!arr.is_array()) {
-            throw RuntimeError("pop() argument must be array");
-        }
-        
-        auto array = arr.get_array();
-        if (array.empty()) {
-            throw RuntimeError("pop() from empty array");
-        }
-        
-        Value result = array.back();
-        array.pop_back();
-        return result;
-    });
-    
-    auto time_func = std::make_unique<NativeFunction>("time", [](const std::vector<Value>& args) -> Value {
-        if (args.size() != 0) {
-            throw RuntimeError("time() takes no arguments");
-        }
-        
-        auto now = std::chrono::system_clock::now();
-        auto time_t = std::chrono::system_clock::to_time_t(now);
-        return Value(static_cast<double>(time_t));
-    });
-    
-    auto rand_func = std::make_unique<NativeFunction>("rand", [](const std::vector<Value>& args) -> Value {
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        
-        if (args.size() == 0) {
-            std::uniform_real_distribution<double> dis(0.0, 1.0);
-            return Value(dis(gen));
-        } else if (args.size() == 1) {
-            if (!args[0].is_number()) {
-                throw RuntimeError("rand() argument must be number");
-            }
-            int max_val = static_cast<int>(args[0].get_number());
-            std::uniform_int_distribution<int> dis(0, max_val - 1);
-            return Value(dis(gen));
-        } else {
-            throw RuntimeError("rand() takes 0 or 1 arguments");
-        }
-    });
-    
-    native_functions["print"] = std::move(print_func);
-    native_functions["len"] = std::move(len_func);
-    native_functions["str"] = std::move(str_func);
-    native_functions["int"] = std::move(int_func);
-    native_functions["float"] = std::move(float_func);
-    native_functions["type"] = std::move(type_func);
-    native_functions["push"] = std::move(push_func);
-    native_functions["pop"] = std::move(pop_func);
-    native_functions["time"] = std::move(time_func);
-    native_functions["rand"] = std::move(rand_func);
+        std::uniform_int_distribution<int64_t> dist(0, INT64_MAX);
+        return Value(dist(rng));
+    })));
+
+    global_->define("push", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.size() < 2 || !args[0].isBuf() || !args[1].isInt())
+            throw RuntimeError("push() expects (buf, i64)");
+        args[0].asBuf().push_back(static_cast<uint8_t>(args[1].asInt() & 0xFF));
+        return Value();
+    })));
+
+    global_->define("pop", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty() || !args[0].isBuf()) throw RuntimeError("pop() expects buf");
+        if (args[0].asBuf().empty()) throw RuntimeError("pop() on empty buf");
+        auto val = args[0].asBuf().back();
+        args[0].asBuf().pop_back();
+        return Value(static_cast<int64_t>(val));
+    })));
+
+    global_->define("slice", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.size() < 3 || !args[0].isBuf() || !args[1].isInt() || !args[2].isInt())
+            throw RuntimeError("slice() expects (buf, start, end)");
+        auto& b = args[0].asBuf();
+        auto start = args[1].asInt();
+        auto end = args[2].asInt();
+        if (start < 0 || end < start || static_cast<size_t>(end) > b.size())
+            throw RuntimeError("slice() out of range");
+        return Value(Value::Buf(b.begin() + start, b.begin() + end));
+    })));
+
+    global_->define("chr", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty() || !args[0].isInt()) throw RuntimeError("chr() expects i64");
+        return Value(std::string(1, static_cast<char>(args[0].asInt())));
+    })));
+
+    global_->define("ord", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        if (args.empty() || !args[0].isStr() || args[0].asStr().empty())
+            throw RuntimeError("ord() expects non-empty str");
+        return Value(static_cast<int64_t>(static_cast<uint8_t>(args[0].asStr()[0])));
+    })));
+
+    global_->define("kill", Value(NativeFn([](std::vector<Value>& args) -> Value {
+        int code = 0;
+        if (!args.empty() && args[0].isInt()) code = static_cast<int>(args[0].asInt());
+        std::exit(code);
+        return Value();
+    })));
 }
 
-Value Interpreter::evaluate_binary_operation(const std::string& operator_, const Value& left, const Value& right) {
-    if (operator_ == "+") {
-        if (left.is_number() && right.is_number()) {
-            return Value(left.get_number() + right.get_number());
-        } else if (left.is_string() || right.is_string()) {
-            return Value(left.to_string() + right.to_string());
-        } else {
-            throw RuntimeError("Invalid operands for +");
-        }
-    } else if (operator_ == "-") {
-        if (left.is_number() && right.is_number()) {
-            return Value(left.get_number() - right.get_number());
-        } else {
-            throw RuntimeError("Invalid operands for -");
-        }
-    } else if (operator_ == "*") {
-        if (left.is_number() && right.is_number()) {
-            return Value(left.get_number() * right.get_number());
-        } else {
-            throw RuntimeError("Invalid operands for *");
-        }
-    } else if (operator_ == "/") {
-        if (left.is_number() && right.is_number()) {
-            if (right.get_number() == 0) {
-                throw RuntimeError("Division by zero");
-            }
-            return Value(left.get_number() / right.get_number());
-        } else {
-            throw RuntimeError("Invalid operands for /");
-        }
-    } else if (operator_ == "%") {
-        if (left.is_number() && right.is_number()) {
-            if (right.get_number() == 0) {
-                throw RuntimeError("Division by zero");
-            }
-            return Value(std::fmod(left.get_number(), right.get_number()));
-        } else {
-            throw RuntimeError("Invalid operands for %");
-        }
-    } else if (operator_ == "==") {
-        return Value(left.equals(right));
-    } else if (operator_ == "!=") {
-        return Value(!left.equals(right));
-    } else if (operator_ == "<") {
-        if (left.is_number() && right.is_number()) {
-            return Value(left.get_number() < right.get_number());
-        } else {
-            throw RuntimeError("Invalid operands for <");
-        }
-    } else if (operator_ == "<=") {
-        if (left.is_number() && right.is_number()) {
-            return Value(left.get_number() <= right.get_number());
-        } else {
-            throw RuntimeError("Invalid operands for <=");
-        }
-    } else if (operator_ == ">") {
-        if (left.is_number() && right.is_number()) {
-            return Value(left.get_number() > right.get_number());
-        } else {
-            throw RuntimeError("Invalid operands for >");
-        }
-    } else if (operator_ == ">=") {
-        if (left.is_number() && right.is_number()) {
-            return Value(left.get_number() >= right.get_number());
-        } else {
-            throw RuntimeError("Invalid operands for >=");
-        }
-    } else if (operator_ == "&&") {
-        return Value(left.is_truthy() && right.is_truthy());
-    } else if (operator_ == "||") {
-        return Value(left.is_truthy() || right.is_truthy());
-    } else {
-        throw RuntimeError("Unknown binary operator: " + operator_);
+void Interpreter::execute(const std::vector<StmtPtr>& program) {
+    executeInEnv(program, *global_);
+}
+
+void Interpreter::executeInEnv(const std::vector<StmtPtr>& program, Environment& env) {
+    for (auto& stmt : program) {
+        exec(stmt.get(), env);
     }
 }
 
-Value Interpreter::evaluate_unary_operation(const std::string& operator_, const Value& operand) {
-    if (operator_ == "-") {
-        if (operand.is_number()) {
-            return Value(-operand.get_number());
-        } else {
-            throw RuntimeError("Invalid operand for unary -");
-        }
-    } else if (operator_ == "!") {
-        return Value(!operand.is_truthy());
-    } else {
-        throw RuntimeError("Unknown unary operator: " + operator_);
-    }
-}
+void Interpreter::exec(const Stmt* stmt, Environment& env) {
+    if (!stmt) return;
 
-Value Interpreter::evaluate(Expression* expression) {
-    if (auto literal = dynamic_cast<LiteralExpression*>(expression)) {
-        return literal->value;
-    } else if (auto variable = dynamic_cast<VariableExpression*>(expression)) {
-        return environment->get(variable->name);
-    } else if (auto binary = dynamic_cast<BinaryExpression*>(expression)) {
-        Value left = evaluate(binary->left.get());
-        Value right = evaluate(binary->right.get());
-        return evaluate_binary_operation(binary->operator_, left, right);
-    } else if (auto unary = dynamic_cast<UnaryExpression*>(expression)) {
-        Value operand = evaluate(unary->operand.get());
-        return evaluate_unary_operation(unary->operator_, operand);
-    } else if (auto call = dynamic_cast<CallExpression*>(expression)) {
-        std::vector<Value> arguments;
-        for (const auto& arg : call->arguments) {
-            arguments.push_back(evaluate(arg.get()));
-        }
-        
-        auto native_it = native_functions.find(call->name);
-        if (native_it != native_functions.end()) {
-            return native_it->second->call(arguments);
-        }
-        
-        auto func_it = functions.find(call->name);
-        if (func_it != functions.end()) {
-            return func_it->second->call(arguments, *this);
-        }
-        
-        throw RuntimeError("Unknown function: " + call->name);
-    } else if (auto array = dynamic_cast<ArrayExpression*>(expression)) {
-        std::vector<Value> elements;
-        for (const auto& element : array->elements) {
-            elements.push_back(evaluate(element.get()));
-        }
-        return Value(elements);
-    } else if (auto object = dynamic_cast<ObjectExpression*>(expression)) {
-        std::map<std::string, Value> properties;
-        for (const auto& prop : object->properties) {
-            properties[prop.first] = evaluate(prop.second.get());
-        }
-        return Value(properties);
-    } else if (auto access = dynamic_cast<AccessExpression*>(expression)) {
-        Value obj = evaluate(access->object.get());
-        
-        if (obj.is_array()) {
-            if (!access->property->is_number()) {
-                throw RuntimeError("Array index must be number");
-            }
-            int index = static_cast<int>(access->property->get_number());
-            const auto& arr = obj.get_array();
-            if (index < 0 || index >= static_cast<int>(arr.size())) {
-                throw RuntimeError("Array index out of bounds");
-            }
-            return arr[index];
-        } else if (obj.is_object()) {
-            if (!access->property->is_string()) {
-                throw RuntimeError("Object property must be string");
-            }
-            const std::string& key = access->property->get_string();
-            const auto& obj_map = obj.get_object();
-            auto it = obj_map.find(key);
-            if (it != obj_map.end()) {
-                return it->second;
-            } else {
-                return Value();
-            }
-        } else {
-            throw RuntimeError("Cannot access property of non-object/array");
-        }
-    } else {
-        throw RuntimeError("Unknown expression type");
-    }
-}
-
-void Interpreter::execute(Statement* statement) {
-    if (should_return || should_break || should_continue) {
+    if (auto s = dynamic_cast<const ExprStmt*>(stmt)) {
+        eval(s->expr.get(), env);
         return;
     }
-    
-    if (auto expr_stmt = dynamic_cast<ExpressionStatement*>(statement)) {
-        evaluate(expr_stmt->expression.get());
-    } else if (auto var_stmt = dynamic_cast<VariableStatement*>(statement)) {
-        Value value;
-        if (var_stmt->initializer) {
-            value = evaluate(var_stmt->initializer.get());
+
+    if (auto s = dynamic_cast<const LoadStmt*>(stmt)) {
+        Value init;
+        if (s->init) init = eval(s->init.get(), env);
+        env.define(s->name, std::move(init), s->is_cell);
+        return;
+    }
+
+    if (auto s = dynamic_cast<const BlockStmt*>(stmt)) {
+        execBlock(s, env);
+        return;
+    }
+
+    if (auto s = dynamic_cast<const CheckStmt*>(stmt)) {
+        if (eval(s->condition.get(), env).truthy())
+            exec(s->then_branch.get(), env);
+        else if (s->alt_branch)
+            exec(s->alt_branch.get(), env);
+        return;
+    }
+
+    if (auto s = dynamic_cast<const LoopStmt*>(stmt)) {
+        while (eval(s->condition.get(), env).truthy()) {
+            try { exec(s->body.get(), env); }
+            catch (HaltSignal&) { break; }
+            catch (SkipSignal&) { continue; }
         }
-        environment->define(var_stmt->name, value);
-    } else if (auto func_stmt = dynamic_cast<FunctionStatement*>(statement)) {
-        auto function = std::make_unique<Function>(func_stmt->name, func_stmt->parameters, 
-                                                   std::move(func_stmt->body), environment);
-        functions[func_stmt->name] = std::move(function);
-    } else if (auto if_stmt = dynamic_cast<IfStatement*>(statement)) {
-        Value condition = evaluate(if_stmt->condition.get());
-        if (condition.is_truthy()) {
-            execute(if_stmt->then_branch.get());
-        } else if (if_stmt->else_branch) {
-            execute(if_stmt->else_branch.get());
+        return;
+    }
+
+    if (auto s = dynamic_cast<const ScanStmt*>(stmt)) {
+        int64_t start_val = eval(s->start.get(), env).asInt();
+        int64_t end_val = eval(s->end.get(), env).asInt();
+        Environment loop_env(&env);
+        loop_env.define(s->var_name, Value(start_val), true);
+
+        for (int64_t i = start_val; i < end_val; ++i) {
+            loop_env.set(s->var_name, Value(i));
+            try { exec(s->body.get(), loop_env); }
+            catch (HaltSignal&) { break; }
+            catch (SkipSignal&) { continue; }
         }
-    } else if (auto while_stmt = dynamic_cast<WhileStatement*>(statement)) {
-        while (true) {
-            Value condition = evaluate(while_stmt->condition.get());
-            if (!condition.is_truthy()) {
-                break;
+        return;
+    }
+
+    if (auto s = dynamic_cast<const ProcStmt*>(stmt)) {
+        auto fn = std::make_shared<Function>();
+        fn->name = s->name;
+        fn->params = s->params;
+        fn->return_type = s->return_type;
+        fn->body = s->body.get();
+        fn->closure = &env;
+        env.define(s->name, Value(fn), false);
+        return;
+    }
+
+    if (auto s = dynamic_cast<const RetStmt*>(stmt)) {
+        Value val;
+        if (s->value) val = eval(s->value.get(), env);
+        throw RetSignal{std::move(val)};
+    }
+
+    if (dynamic_cast<const HaltStmt*>(stmt)) { throw HaltSignal{}; }
+    if (dynamic_cast<const SkipStmt*>(stmt)) { throw SkipSignal{}; }
+
+    if (auto s = dynamic_cast<const PacketStmt*>(stmt)) {
+        PacketDef def;
+        def.name = s->name;
+        for (auto& [fname, ftype] : s->fields) def.fields.push_back(fname);
+        packets_[s->name] = std::move(def);
+        return;
+    }
+
+    if (auto s = dynamic_cast<const ProbeStmt*>(stmt)) {
+        auto val = eval(s->target.get(), env);
+        probeValue(val);
+        return;
+    }
+
+    if (auto s = dynamic_cast<const BreachStmt*>(stmt)) {
+        bool prev = in_breach_;
+        in_breach_ = true;
+        exec(s->body.get(), env);
+        in_breach_ = prev;
+        return;
+    }
+
+    if (auto s = dynamic_cast<const GateStmt*>(stmt)) {
+        auto target = eval(s->target.get(), env);
+        for (auto& arm : s->arms) {
+            if (arm.is_wildcard) {
+                exec(arm.body.get(), env);
+                return;
             }
-            
-            execute(while_stmt->body.get());
-            
-            if (should_return) {
-                break;
-            }
-            
-            if (should_break) {
-                should_break = false;
-                break;
-            }
-            
-            if (should_continue) {
-                should_continue = false;
-                continue;
+            auto pattern = eval(arm.pattern.get(), env);
+            bool matches = false;
+            if (target.isInt() && pattern.isInt())
+                matches = target.asInt() == pattern.asInt();
+            else if (target.isStr() && pattern.isStr())
+                matches = target.asStr() == pattern.asStr();
+            else if (target.isBool() && pattern.isBool())
+                matches = target.asBool() == pattern.asBool();
+            else
+                matches = target.toString() == pattern.toString();
+
+            if (matches) {
+                exec(arm.body.get(), env);
+                return;
             }
         }
-    } else if (auto for_stmt = dynamic_cast<ForStatement*>(statement)) {
-        auto for_env = environment->create_child();
-        auto previous_env = environment;
-        environment = for_env;
-        
-        if (for_stmt->initializer) {
-            execute(for_stmt->initializer.get());
-        }
-        
-        while (true) {
-            if (for_stmt->condition) {
-                Value condition = evaluate(for_stmt->condition.get());
-                if (!condition.is_truthy()) {
-                    break;
-                }
-            }
-            
-            execute(for_stmt->body.get());
-            
-            if (should_return) {
-                break;
-            }
-            
-            if (should_break) {
-                should_break = false;
-                break;
-            }
-            
-            if (should_continue) {
-                should_continue = false;
-            }
-            
-            if (for_stmt->increment) {
-                evaluate(for_stmt->increment.get());
-            }
-        }
-        
-        environment = previous_env;
-    } else if (auto block_stmt = dynamic_cast<BlockStatement*>(statement)) {
-        execute_block(block_stmt->statements, environment->create_child());
-    } else if (auto return_stmt = dynamic_cast<ReturnStatement*>(statement)) {
-        if (return_stmt->value) {
-            return_value = evaluate(return_stmt->value.get());
-        } else {
-            return_value = Value();
-        }
-        should_return = true;
-    } else if (auto break_stmt = dynamic_cast<BreakStatement*>(statement)) {
-        should_break = true;
-    } else if (auto continue_stmt = dynamic_cast<ContinueStatement*>(statement)) {
-        should_continue = true;
-    } else {
-        throw RuntimeError("Unknown statement type");
+        return;
+    }
+
+    throw RuntimeError("unknown statement");
+}
+
+void Interpreter::execBlock(const BlockStmt* block, Environment& env) {
+    Environment local(&env);
+    for (auto& stmt : block->stmts) {
+        exec(stmt.get(), local);
     }
 }
 
-void Interpreter::execute_block(const std::vector<std::unique_ptr<Statement>>& statements, 
-                               std::shared_ptr<Environment> env) {
-    auto previous_env = environment;
-    environment = env;
-    
-    for (const auto& stmt : statements) {
-        execute(stmt.get());
-        if (should_return || should_break || should_continue) {
-            break;
+Value Interpreter::eval(const Expr* expr, Environment& env) {
+    if (!expr) return Value();
+
+    if (auto e = dynamic_cast<const LiteralExpr*>(expr)) {
+        return e->value;
+    }
+
+    if (auto e = dynamic_cast<const IdentExpr*>(expr)) {
+        return env.get(e->name);
+    }
+
+    if (auto e = dynamic_cast<const UnaryExpr*>(expr)) {
+        auto val = eval(e->operand.get(), env);
+        switch (e->op) {
+            case TokenType::Minus:
+                if (val.isInt()) return Value(-val.asInt());
+                if (val.isFloat()) return Value(-val.asFloat());
+                throw RuntimeError("unary '-' expects number");
+            case TokenType::Bang:
+                return Value(!val.truthy());
+            case TokenType::Tilde:
+                if (val.isInt()) return Value(~val.asInt());
+                throw RuntimeError("'~' expects i64");
+            default:
+                throw RuntimeError("unknown unary op");
         }
     }
-    
-    environment = previous_env;
-}
 
-void Interpreter::interpret(const std::vector<std::unique_ptr<Statement>>& statements) {
-    try {
-        for (const auto& stmt : statements) {
-            execute(stmt.get());
-            if (should_return) {
-                break;
+    if (auto e = dynamic_cast<const BinaryExpr*>(expr)) {
+        auto left = eval(e->left.get(), env);
+        auto right = eval(e->right.get(), env);
+
+        if (e->op == TokenType::AmpAmp) return Value(left.truthy() && right.truthy());
+        if (e->op == TokenType::PipePipe) return Value(left.truthy() || right.truthy());
+
+        if (left.isInt() && right.isInt()) {
+            int64_t a = left.asInt(), b = right.asInt();
+            switch (e->op) {
+                case TokenType::Plus:    return Value(a + b);
+                case TokenType::Minus:   return Value(a - b);
+                case TokenType::Star:    return Value(a * b);
+                case TokenType::Slash:
+                    if (b == 0) throw RuntimeError("division by zero");
+                    return Value(a / b);
+                case TokenType::Percent:
+                    if (b == 0) throw RuntimeError("modulo by zero");
+                    return Value(a % b);
+                case TokenType::Amp:     return Value(a & b);
+                case TokenType::Pipe:    return Value(a | b);
+                case TokenType::Caret:   return Value(a ^ b);
+                case TokenType::Shl:     return Value(a << b);
+                case TokenType::Shr:     return Value(a >> b);
+                case TokenType::EqEq:    return Value(a == b);
+                case TokenType::BangEq:  return Value(a != b);
+                case TokenType::Lt:      return Value(a < b);
+                case TokenType::Gt:      return Value(a > b);
+                case TokenType::LtEq:    return Value(a <= b);
+                case TokenType::GtEq:    return Value(a >= b);
+                default: break;
             }
         }
-    } catch (const RuntimeError& e) {
-        std::cerr << "\033[31mRuntime Error: " << e.what() << "\033[0m" << std::endl;
-        throw;
+
+        if ((left.isInt() || left.isFloat()) && (right.isInt() || right.isFloat())) {
+            double a = left.toNumber(), b = right.toNumber();
+            switch (e->op) {
+                case TokenType::Plus:    return Value(a + b);
+                case TokenType::Minus:   return Value(a - b);
+                case TokenType::Star:    return Value(a * b);
+                case TokenType::Slash:
+                    if (b == 0.0) throw RuntimeError("division by zero");
+                    return Value(a / b);
+                case TokenType::EqEq:    return Value(a == b);
+                case TokenType::BangEq:  return Value(a != b);
+                case TokenType::Lt:      return Value(a < b);
+                case TokenType::Gt:      return Value(a > b);
+                case TokenType::LtEq:    return Value(a <= b);
+                case TokenType::GtEq:    return Value(a >= b);
+                default: break;
+            }
+        }
+
+        if (left.isStr() && e->op == TokenType::Plus)
+            return Value(left.asStr() + right.toString());
+
+        if (left.isStr() && right.isStr()) {
+            if (e->op == TokenType::EqEq) return Value(left.asStr() == right.asStr());
+            if (e->op == TokenType::BangEq) return Value(left.asStr() != right.asStr());
+        }
+
+        if (left.isBuf() && right.isBuf() && e->op == TokenType::Plus) {
+            auto result = left.asBuf();
+            auto& rb = right.asBuf();
+            result.insert(result.end(), rb.begin(), rb.end());
+            return Value(std::move(result));
+        }
+
+        if (left.isBool() && right.isBool()) {
+            if (e->op == TokenType::EqEq) return Value(left.asBool() == right.asBool());
+            if (e->op == TokenType::BangEq) return Value(left.asBool() != right.asBool());
+        }
+
+        throw RuntimeError("invalid operands for '" + std::string(Token::typeName(e->op)) + "'");
+    }
+
+    if (auto e = dynamic_cast<const AssignExpr*>(expr)) {
+        auto val = eval(e->value.get(), env);
+        if (e->op == TokenType::Eq) {
+            env.set(e->name, val);
+            return val;
+        }
+        auto& current = env.get(e->name);
+        if (current.isInt() && val.isInt()) {
+            int64_t a = current.asInt(), b = val.asInt();
+            int64_t result;
+            switch (e->op) {
+                case TokenType::PlusEq:    result = a + b; break;
+                case TokenType::MinusEq:   result = a - b; break;
+                case TokenType::StarEq:    result = a * b; break;
+                case TokenType::SlashEq:   result = a / b; break;
+                case TokenType::PercentEq: result = a % b; break;
+                case TokenType::AmpEq:     result = a & b; break;
+                case TokenType::PipeEq:    result = a | b; break;
+                case TokenType::CaretEq:   result = a ^ b; break;
+                case TokenType::ShlEq:     result = a << b; break;
+                case TokenType::ShrEq:     result = a >> b; break;
+                default: throw RuntimeError("unknown compound assignment");
+            }
+            env.set(e->name, Value(result));
+            return Value(result);
+        }
+        if (current.isStr() && e->op == TokenType::PlusEq) {
+            auto result = current.asStr() + val.toString();
+            env.set(e->name, Value(result));
+            return Value(result);
+        }
+        throw RuntimeError("invalid compound assignment");
+    }
+
+    if (auto e = dynamic_cast<const CallExpr*>(expr)) {
+        auto callee = eval(e->callee.get(), env);
+        std::vector<Value> args;
+        for (auto& arg : e->args) args.push_back(eval(arg.get(), env));
+        return callFunction(callee, args, env);
+    }
+
+    if (auto e = dynamic_cast<const IndexExpr*>(expr)) {
+        auto obj = eval(e->object.get(), env);
+        auto idx = eval(e->index.get(), env);
+        if (obj.isBuf() && idx.isInt()) {
+            auto i = idx.asInt();
+            if (i < 0 || static_cast<size_t>(i) >= obj.asBuf().size())
+                throw RuntimeError("buf index out of range");
+            return Value(static_cast<int64_t>(obj.asBuf()[i]));
+        }
+        if (obj.isStr() && idx.isInt()) {
+            auto i = idx.asInt();
+            if (i < 0 || static_cast<size_t>(i) >= obj.asStr().size())
+                throw RuntimeError("str index out of range");
+            return Value(std::string(1, obj.asStr()[i]));
+        }
+        throw RuntimeError("indexing requires buf or str");
+    }
+
+    if (auto e = dynamic_cast<const IndexAssignExpr*>(expr)) {
+        auto obj_expr = dynamic_cast<const IdentExpr*>(e->object.get());
+        if (!obj_expr) throw RuntimeError("can only index-assign to variables");
+        auto& obj = env.get(obj_expr->name);
+        auto idx = eval(e->index.get(), env);
+        auto val = eval(e->value.get(), env);
+        if (obj.isBuf() && idx.isInt()) {
+            auto i = idx.asInt();
+            if (i < 0 || static_cast<size_t>(i) >= obj.asBuf().size())
+                throw RuntimeError("buf index out of range");
+            obj.asBuf()[i] = static_cast<uint8_t>(val.asInt() & 0xFF);
+            return val;
+        }
+        throw RuntimeError("index assignment requires cell buf");
+    }
+
+    if (auto e = dynamic_cast<const DotExpr*>(expr)) {
+        auto obj = eval(e->object.get(), env);
+        if (obj.isPacket()) {
+            auto pkt = obj.asPacket();
+            auto it = pkt->fields.find(e->field);
+            if (it == pkt->fields.end())
+                throw RuntimeError("packet '" + pkt->name + "' has no field '" + e->field + "'");
+            return it->second;
+        }
+        throw RuntimeError("dot access requires packet");
+    }
+
+    if (auto e = dynamic_cast<const DotAssignExpr*>(expr)) {
+        auto obj_expr = dynamic_cast<const IdentExpr*>(e->object.get());
+        if (!obj_expr) throw RuntimeError("can only dot-assign to variables");
+        auto& obj = env.get(obj_expr->name);
+        auto val = eval(e->value.get(), env);
+        if (obj.isPacket()) {
+            obj.asPacket()->fields[e->field] = val;
+            return val;
+        }
+        throw RuntimeError("dot assign requires packet");
+    }
+
+    if (auto e = dynamic_cast<const ArrayExpr*>(expr)) {
+        Value::Buf buf;
+        for (auto& elem : e->elements) {
+            auto v = eval(elem.get(), env);
+            if (v.isInt()) buf.push_back(static_cast<uint8_t>(v.asInt() & 0xFF));
+            else throw RuntimeError("buf literal elements must be integers");
+        }
+        return Value(std::move(buf));
+    }
+
+    if (auto e = dynamic_cast<const PipeExpr*>(expr)) {
+        auto left_val = eval(e->left.get(), env);
+        if (auto call = dynamic_cast<const CallExpr*>(e->right.get())) {
+            auto callee = eval(call->callee.get(), env);
+            std::vector<Value> args;
+            args.push_back(std::move(left_val));
+            for (auto& arg : call->args) args.push_back(eval(arg.get(), env));
+            return callFunction(callee, args, env);
+        }
+        auto callee = eval(e->right.get(), env);
+        std::vector<Value> args;
+        args.push_back(std::move(left_val));
+        return callFunction(callee, args, env);
+    }
+
+    if (auto e = dynamic_cast<const PacketInitExpr*>(expr)) {
+        auto it = packets_.find(e->name);
+        if (it == packets_.end())
+            throw RuntimeError("unknown packet '" + e->name + "'");
+        auto pkt = std::make_shared<PacketInstance>();
+        pkt->name = e->name;
+        for (auto& [fname, fexpr] : e->fields)
+            pkt->fields[fname] = eval(fexpr.get(), env);
+        return Value(pkt);
+    }
+
+    throw RuntimeError("unknown expression");
+}
+
+Value Interpreter::callFunction(const Value& callee, std::vector<Value>& args, Environment& env) {
+    if (callee.isNative()) return callee.asNative()(args);
+
+    if (callee.isFunc()) {
+        auto fn = callee.asFunc();
+        Environment fn_env(fn->closure ? fn->closure : &env);
+
+        if (args.size() != fn->params.size())
+            throw RuntimeError("proc '" + fn->name + "' expects " +
+                             std::to_string(fn->params.size()) + " args, got " +
+                             std::to_string(args.size()));
+
+        for (size_t i = 0; i < fn->params.size(); ++i)
+            fn_env.define(fn->params[i].first, std::move(args[i]), true);
+
+        try {
+            exec(fn->body, fn_env);
+        } catch (RetSignal& ret) {
+            return std::move(ret.value);
+        }
+        return Value();
+    }
+
+    throw RuntimeError("not callable");
+}
+
+void Interpreter::probeValue(const Value& val) {
+    std::cout << "\033[32m[PROBE]\033[0m ";
+
+    if (val.isBuf()) {
+        auto& buf = val.asBuf();
+        std::cout << "\033[33m<buf:" << buf.size() << ">\033[0m ";
+        for (size_t i = 0; i < buf.size() && i < 64; ++i)
+            std::cout << std::hex << std::setw(2) << std::setfill('0')
+                      << std::uppercase << (int)buf[i] << " ";
+        if (buf.size() > 64) std::cout << "... ";
+        std::cout << "\033[90m|";
+        for (size_t i = 0; i < buf.size() && i < 64; ++i) {
+            char c = static_cast<char>(buf[i]);
+            std::cout << (std::isprint(c) ? c : '.');
+        }
+        std::cout << "|\033[0m" << std::dec << "\n";
+        return;
+    }
+
+    if (val.isPacket()) {
+        auto pkt = val.asPacket();
+        std::cout << "\033[33m<" << pkt->name << ">\033[0m";
+        for (auto& [k, v] : pkt->fields) {
+            std::cout << " " << k << "=";
+            if (v.isInt()) std::cout << "0x" << std::hex << std::uppercase << v.asInt() << std::dec;
+            else std::cout << v.toString();
+        }
+        std::cout << "\n";
+        return;
+    }
+
+    std::cout << "\033[33m<" << val.typeName() << ">\033[0m "
+              << val.toString();
+    if (val.isInt())
+        std::cout << " \033[90m(0x" << std::hex << std::uppercase
+                  << val.asInt() << std::dec << ")\033[0m";
+    std::cout << "\n";
+}
+
+void Interpreter::hexdump(const Value::Buf& buf) {
+    for (size_t offset = 0; offset < buf.size(); offset += 16) {
+        std::cout << "\033[90m" << std::hex << std::setw(8) << std::setfill('0')
+                  << offset << "\033[0m  ";
+
+        for (size_t i = 0; i < 16; ++i) {
+            if (offset + i < buf.size())
+                std::cout << std::setw(2) << std::setfill('0')
+                          << std::hex << std::uppercase << (int)buf[offset + i] << " ";
+            else
+                std::cout << "   ";
+            if (i == 7) std::cout << " ";
+        }
+
+        std::cout << " \033[90m|";
+        for (size_t i = 0; i < 16 && offset + i < buf.size(); ++i) {
+            char c = static_cast<char>(buf[offset + i]);
+            std::cout << (std::isprint(c) ? c : '.');
+        }
+        std::cout << "|\033[0m" << std::dec << "\n";
     }
 }
 
-void Interpreter::reset() {
-    globals = std::make_shared<Environment>();
-    environment = globals;
-    functions.clear();
-    should_return = false;
-    should_break = false;
-    should_continue = false;
-    return_value = Value();
-    define_native_functions();
 }
-
-Interpreter::MemoryStats Interpreter::get_memory_stats() const {
-    MemoryStats stats;
-    stats.total_allocated = 1024 * 1024; 
-    stats.total_used = 512 * 1024;      
-    stats.available = stats.total_allocated - stats.total_used;
-    stats.block_count = 16;
-    stats.fragmentation_percent = (stats.available * 100) / stats.total_allocated;
-    return stats;
-}
-
-} 

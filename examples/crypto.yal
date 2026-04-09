@@ -1,0 +1,57 @@
+# YALOK :: xor cipher
+
+echo("=== XOR CIPHER ===")
+
+proc xor_crypt(data: buf, key: i64) -> buf {
+    cell result: buf = alloc(size(data))
+    scan i thru 0..size(data) {
+        result[i] = data[i] ^ key
+    }
+    ret result
+}
+
+load message: buf = [0x48, 0x65, 0x6C, 0x6C, 0x6F]
+load key: i64 = 0xAB
+
+echo("original:")
+probe message
+
+load encrypted: buf = xor_crypt(message, key)
+echo("encrypted (key=0xAB):")
+probe encrypted
+
+load decrypted: buf = xor_crypt(encrypted, key)
+echo("decrypted:")
+probe decrypted
+
+echo("")
+echo("--- brute force ---")
+scan k thru 0..8 {
+    load attempt: buf = xor_crypt(encrypted, k * 32 + 0x0B)
+    emit("key", hex(k * 32 + 0x0B), "=>")
+    probe attempt
+}
+
+echo("")
+proc rot13(data: buf) -> buf {
+    cell out: buf = alloc(size(data))
+    scan i thru 0..size(data) {
+        load byte: i64 = data[i]
+        check byte >= 65 && byte <= 90 {
+            out[i] = (byte - 65 + 13) % 26 + 65
+        } alt {
+            check byte >= 97 && byte <= 122 {
+                out[i] = (byte - 97 + 13) % 26 + 97
+            } alt {
+                out[i] = byte
+            }
+        }
+    }
+    ret out
+}
+
+load text: buf = [0x55, 0x72, 0x79, 0x79, 0x62]
+echo("ROT13:")
+probe text
+load rotated: buf = rot13(text)
+probe rotated

@@ -1,0 +1,3 @@
+C:/Users/User_/Desktop/YALOK-Programming-Language/build/CMakeFiles/yalok.dir
+C:/Users/User_/Desktop/YALOK-Programming-Language/build/CMakeFiles/edit_cache.dir
+C:/Users/User_/Desktop/YALOK-Programming-Language/build/CMakeFiles/rebuild_cache.dir

@@ -1,44 +1,17 @@
-var greeting = "Hello, YALOK World!";
-print(greeting);
+# YALOK :: hello world
 
-var name = "Developer";
-var age = 25;
-var height = 5.9;
-var is_programmer = true;
+echo("[ YALOK v1.0 :: by YALOKGAR ]")
+echo("[ systems language for hackers ]")
+echo("")
 
-print("Name:", name);
-print("Age:", age);
-print("Height:", height, "feet");
-print("Is programmer:", is_programmer);
+load name: str = "YALOKGAR"
+load version: i64 = 1
+cell counter: i64 = 0
 
-var numbers = [1, 2, 3, 4, 5];
-print("Numbers array:", numbers);
-print("Array length:", len(numbers));
-
-for (var i = 0; i < len(numbers); i++) {
-    print("Number at index", i, ":", numbers[i]);
+scan i thru 0..5 {
+    counter += 1
+    echo("  tick", counter)
 }
 
-var user = {
-    name: "Alice",
-    age: 28,
-    city: "New York"
-};
-
-print("User object:", user);
-print("User name:", user.name);
-print("User age:", user.age);
-
-var sum = 0;
-for (var i = 1; i <= 10; i++) {
-    sum += i;
-}
-print("Sum of 1 to 10:", sum);
-
-if (age >= 18) {
-    print("You are an adult!");
-} else {
-    print("You are a minor!");
-}
-
-print("Program completed successfully!"); 
+echo("")
+echo(name, ":: language is alive.")

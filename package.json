@@ -1,0 +1,26 @@
+{
+    "name": "yalok-language",
+    "displayName": "YALOK",
+    "description": "YALOK systems language by YALOKGAR",
+    "version": "1.0.0",
+    "engines": {
+        "vscode": "^1.60.0"
+    },
+    "contributes": {
+        "languages": [
+            {
+                "id": "yalok",
+                "aliases": ["YALOK", "yalok"],
+                "extensions": [".yal"],
+                "configuration": ".vscode/yalok-language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "yalok",
+                "scopeName": "source.yalok",
+                "path": ".vscode/yalok.tmLanguage.json"
+            }
+        ]
+    }
+}
